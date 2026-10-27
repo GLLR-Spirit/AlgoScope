@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JavaScript Playground — Run Code in Your Browser | AlgoScope</title>
+<meta name="description" content="Write and run JavaScript in a local browser sandbox, inspect output, and explore a step-by-step Bubble Sort trace with AlgoScope.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://gllr-spirit.github.io/AlgoScope/editor.html">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="editor.css">
+<script src="editor.js" defer></script>
+</head>
+<body>
+<header><a class="brand" href="index.html"><b>A</b> Algo<span>Scope</span></a><nav><a href="index.html#algorithms">Algorithms</a><a href="index.html#how">How it works</a></nav><a class="nav-button" href="index.html">Home ↗</a></header>
+<main class="wrap editor-main">
+<section class="page-hero editor-hero"><div class="breadcrumbs"><a href="index.html">Home</a> / JavaScript Playground</div><p class="eyebrow">CODE LAB · BROWSER-BASED</p><h1>Write code. <span>See what happens.</span></h1><p>Run JavaScript in a disposable browser sandbox, inspect its output, and explore a structured Bubble Sort trace. No account or server execution required.</p><div class="tags"><span>LOCAL EXECUTION</span><span>NO BUILD STEP</span><span>LEARN BY DOING</span></div></section>
+<section class="editor-grid">
+<div class="panel editor-panel">
+<div class="panel-heading"><h2>JavaScript editor</h2><label for="example-select">Example <select id="example-select"><option value="hello">Hello world</option><option value="loop">Loop and total</option><option value="bubble">Bubble Sort</option></select></label></div>
+<label class="sr-only" for="code-input">JavaScript code</label>
+<textarea id="code-input" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="editor-help">const values = [4, 2, 7, 1];
+console.log("Values:", values);
+console.log("Total:", values.reduce((sum, value) => sum + value, 0));</textarea>
+<p id="editor-help" class="editor-help">Tip: use console.log(...) to display values. Ctrl+Enter (or Cmd+Enter) runs the code.</p>
+<div class="editor-actions"><button class="primary" id="run-code" type="button">▶ Run code</button><button id="reset-code" type="button">Reset example</button></div>
+<div class="output-heading"><h3>Console output</h3><button id="clear-output" type="button">Clear</button></div>
+<pre id="console-output" class="console-output" role="log" aria-live="polite">Ready. Run your code to see output here.</pre>
+<p id="run-status" class="editor-help" aria-live="polite">Code runs in an isolated iframe with a short time limit.</p>
+</div>
+<div class="panel trace-panel">
+<div class="panel-heading"><h2>Algorithm trace</h2><span class="trace-pill">Bubble Sort example</span></div>
+<p class="editor-help">The trace visualizes the built-in example, not arbitrary code typed in the editor. Each step records an array snapshot and a short explanation.</p>
+<div id="trace-stage" class="trace-stage" aria-label="Bubble Sort array trace"></div>
+<p id="trace-explanation" class="trace-explanation" aria-live="polite">Choose “Bubble Sort” from the example menu, then use the trace controls.</p>
+<div class="trace-controls"><button id="trace-prev" type="button" disabled>← Previous</button><button id="trace-next" type="button">Next →</button><button id="trace-reset" type="button">↺ Reset</button></div>
+<div class="trace-meter"><span id="trace-step">Step 1 / 1</span><span id="trace-counts">Comparisons: 0 · Swaps: 0</span></div>
+<input id="trace-timeline" type="range" min="0" max="0" value="0" step="1" aria-label="Navigate trace steps">
+</div>
+</section>
+<section class="editor-note"><h2>What this first version supports</h2><ul><li>Run JavaScript and read console output and runtime errors.</li><li>Use a disposable sandboxed iframe; the code does not receive access to the parent page's DOM.</li><li>Step backward and forward through a built-in Bubble Sort trace with array snapshots and counters.</li></ul><p><strong>Important:</strong> arbitrary JavaScript is executed, but its internal operations are not automatically traced yet. Python and C support are planned for later stages.</p></section>
+</main>
+<footer><a class="brand" href="index.html"><b>A</b> Algo<span>Scope</span></a><span>Understand the logic. Follow every step.</span><span>© <span id="year">2026</span> AlgoScope</span></footer>
+</body>
+</html>
