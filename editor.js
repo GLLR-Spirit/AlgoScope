@@ -123,7 +123,9 @@
         runButton.disabled = false;
         runButton.textContent = "▶ Run code";
         runStatus.textContent = "Execution stopped because of an error.";
-        frame.remove();\n        activeFrame = null;\n        window.removeEventListener("message", receive);
+        frame.remove();
+        activeFrame = null;
+        window.removeEventListener("message", receive);
       }
     };
     window.addEventListener("message", receive);
