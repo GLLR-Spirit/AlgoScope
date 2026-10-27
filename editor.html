@@ -31,6 +31,10 @@ console.log("Total:", values.reduce((sum, value) => sum + value, 0));</textarea>
 <div class="panel trace-panel">
 <div class="panel-heading"><h2>Algorithm trace</h2><span class="trace-pill">Bubble Sort example</span></div>
 <p class="editor-help">The trace visualizes the built-in example, not arbitrary code typed in the editor. Each step records an array snapshot and a short explanation.</p>
+<label class="array-label" for="custom-array">Custom array (2–12 integers)</label>
+<div class="array-input-row"><input id="custom-array" type="text" value="5, 2, 4, 1, 3" inputmode="numeric" autocomplete="off" aria-describedby="array-help array-status"><button id="apply-array" type="button">Apply array</button></div>
+<p id="array-help" class="editor-help">Use commas or spaces. Values must be from 1 to 999.</p>
+<p id="array-status" class="editor-help" role="status" aria-live="polite">Showing the default array.</p>
 <div id="trace-stage" class="trace-stage" aria-label="Bubble Sort array trace"></div>
 <p id="trace-explanation" class="trace-explanation" aria-live="polite">Choose “Bubble Sort” from the example menu, then use the trace controls.</p>
 <div class="trace-controls"><button id="trace-prev" type="button" disabled>← Previous</button><button id="trace-next" type="button">Next →</button><button id="trace-reset" type="button">↺ Reset</button></div>
