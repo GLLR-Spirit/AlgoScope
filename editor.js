@@ -152,7 +152,7 @@
 
   let trace = [];
   let traceIndex = 0;
-  const initial = [5, 2, 4, 1, 3];
+  let initial = [5, 2, 4, 1, 3];
 
   function buildTrace() {
     const values = [...initial];
@@ -214,7 +214,43 @@
       codeInput.setRangeText("  ", start, end, "end");
     }
   });
-  $("#trace-prev").addEventListener("click", () => { traceIndex = Math.max(0, traceIndex - 1); renderTrace(); });
+  $("#apply-array").addEventListener("click", () => {
+    const raw = $("#custom-array").value.trim();
+    const parts = raw.split(/[\s,;]+/).filter(Boolean);
+    const values = parts.map(Number);
+    const status = $("#array-status");
+    if (parts.length < 2 || parts.length > 12 || values.some(value => !Number.isInteger(value) || value < 1 || value > 999)) {
+      status.textContent = "Enter 2–12 positive integers from 1 to 999, separated by commas or spaces.";
+      status.classList.add("error");
+      return;
+    }
+    initial = values;
+    buildTrace();
+    status.textContent = "Trace updated for " + values.length + " values.";
+    status.classList.remove("error");
+    if (exampleSelect.value === "bubble") {
+      codeInput.value = [
+        "function bubbleSort(values) {",
+        "  const a = [...values];",
+        "  let swaps = 0;",
+        "  for (let end = a.length - 1; end > 0; end--) {",
+        "    let changed = false;",
+        "    for (let i = 0; i < end; i++) {",
+        "      console.log(\"Compare\", a[i], a[i + 1]);",
+        "      if (a[i] > a[i + 1]) {",
+        "        [a[i], a[i + 1]] = [a[i + 1], a[i]];",
+        "        swaps++; changed = true;",
+        "      }",
+        "    }",
+        "    if (!changed) break;",
+        "  }",
+        "  console.log(\"Sorted:\", a, \"Swaps:\", swaps);",
+        "}",
+        "bubbleSort([" + values.join(", ") + "]);"
+      ].join("\n");
+    }
+  });
+    $("#trace-prev").addEventListener("click", () => { traceIndex = Math.max(0, traceIndex - 1); renderTrace(); });
   $("#trace-next").addEventListener("click", () => { traceIndex = Math.min(trace.length - 1, traceIndex + 1); renderTrace(); });
   $("#trace-reset").addEventListener("click", () => { traceIndex = 0; renderTrace(); });
   $("#trace-timeline").addEventListener("input", (event) => { traceIndex = Number(event.target.value); renderTrace(); });
