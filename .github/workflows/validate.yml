@@ -34,6 +34,11 @@ jobs:
               Path("styles.css"),
               Path("script.js"),
               Path("trace-model.js"),
+              Path("editor.html"),
+              Path("editor.js"),
+              Path("editor.css"),
+              Path("tests/trace-model.test.cjs"),
+              Path("trace-model.js"),
               Path("tests/trace-model.test.cjs"),
               Path("robots.txt"),
               Path("sitemap.xml"),
@@ -89,7 +94,7 @@ jobs:
                       errors.append(f"{page}: broken local link or asset {target}")
 
           required_controls = ["stage", "message", "comparisons", "swaps", "step", "prev", "next", "reset", "play", "speed", "random"]
-          for page in pages[1:]:
+          for page in sorted(Path("algorithms").glob("*.html")):
               parser = audits[page]
               for control in required_controls:
                   if control not in parser.ids:
