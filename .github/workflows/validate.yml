@@ -1,0 +1,48 @@
+name: Validate AlgoScope
+on:
+  pull_request:
+  push:
+    branches: [main, "feat/**"]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: node --check script.js
+      - name: Check required pages and SEO files
+        run: |
+          test -f index.html
+          test -f algorithms/bubble-sort.html
+          test -f algorithms/insertion-sort.html
+          test -f algorithms/binary-search.html
+          test -f robots.txt
+          test -f sitemap.xml
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          pages = [Path('index.html'), *Path('algorithms').glob('*.html')]
+          failed = False
+          for page in pages:
+              html = page.read_text(encoding='utf-8')
+              for label, pattern in [('title', r'<title>[^<]+</title>'), ('description', r'<meta name="description" content="[^"]+"'), ('canonical', r'<link rel="canonical" href="[^"]+"')]:
+                  if not re.search(pattern, html, re.I):
+                      print(f'FAIL: {page} missing {label}')
+                      failed = True
+              for target in re.findall(r'(?:src|href)="([^"]+)"', html):
+                  if target.startswith(('http:', 'https:', '#', 'mailto:', 'tel:')) or target.startswith('//'):
+                      continue
+                  if target.endswith(('.css', '.js', '.html')):
+                      resolved = (page.parent / target).resolve()
+                      if not resolved.exists():
+                          print(f'FAIL: {page} broken local link: {target}')
+                          failed = True
+          if failed:
+              raise SystemExit(1)
+          print(f'PASS: checked {len(pages)} HTML pages, metadata, and local assets.')
+          PY
