@@ -14,7 +14,11 @@ jobs:
         with:
           node-version: 22
       - name: Check JavaScript syntax
-        run: node --check script.js
+        run: |
+          node --check script.js
+          node --check trace-model.js
+      - name: Run trace contract unit tests
+        run: node --test tests/*.test.cjs
       - name: Check required pages, links, controls, and SEO
         run: |
           python3 - <<'PY'
@@ -29,6 +33,8 @@ jobs:
               Path("algorithms/binary-search.html"),
               Path("styles.css"),
               Path("script.js"),
+              Path("trace-model.js"),
+              Path("tests/trace-model.test.cjs"),
               Path("robots.txt"),
               Path("sitemap.xml"),
           ]
