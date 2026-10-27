@@ -55,22 +55,35 @@
     frame.style.cssText = "position:absolute;width:1px;height:1px;left:-10000px;border:0";
     activeFrame = frame;
     const source = codeInput.value;
-    const child = `<!doctype html><meta charset="utf-8"><script>
+    const child = `<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; worker-src blob:"><script>
       (() => {
         const send = (type, values) => parent.postMessage({ channel: "algoscope-js-playground", type, values }, "*");
-        const format = value => {
-          if (typeof value === "string") return value;
-          try { return JSON.stringify(value); } catch (_) { return String(value); }
-        };
-        console.log = (...args) => send("log", args.map(format));
-        console.info = (...args) => send("log", args.map(format));
-        console.warn = (...args) => send("warn", args.map(format));
-        console.error = (...args) => send("error", args.map(format));
-        window.onerror = (message, source, line, column) => { send("runtime-error", [String(message) + " (line " + line + ")"]); return true; };
-        try { (new Function(${JSON.stringify(source)}))(); send("done", []); }
-        catch (error) { send("runtime-error", [error && error.stack ? error.stack : String(error)]); }
+        const userCode = ${JSON.stringify(source)};
+        const workerSource = \`
+          const send = (type, values) => postMessage({ type, values });
+          const format = value => {
+            if (typeof value === "string") return value;
+            try { return JSON.stringify(value); } catch (_) { return String(value); }
+          };
+          console.log = (...args) => send("log", args.map(format));
+          console.info = (...args) => send("log", args.map(format));
+          console.warn = (...args) => send("warn", args.map(format));
+          console.error = (...args) => send("error", args.map(format));
+          self.onerror = (event) => { send("runtime-error", [String(event.message || "Runtime error")]); return true; };
+          try { (new Function(${JSON.stringify(source)}))(); send("done", []); }
+          catch (error) { send("runtime-error", [error && error.stack ? error.stack : String(error)]); }
+        \`;
+        try {
+          const blobUrl = URL.createObjectURL(new Blob([workerSource], { type: "text/javascript" }));
+          const worker = new Worker(blobUrl);
+          worker.onmessage = event => send(event.data.type, event.data.values || []);
+          worker.onerror = event => send("runtime-error", [String(event.message || "Worker error")]);
+          setTimeout(() => { worker.terminate(); URL.revokeObjectURL(blobUrl); send("timeout", ["Execution stopped: time limit exceeded."]); }, 1200);
+        } catch (error) {
+          send("runtime-error", ["Sandbox worker could not start: " + String(error)]);
+        }
       })();
-    </script>`;
+    <\/script>`;
     const receive = (event) => {
       if (event.source !== frame.contentWindow || !event.data || event.data.channel !== "algoscope-js-playground" || token !== runToken) return;
       const data = event.data;
@@ -93,7 +106,7 @@
         timeoutId = null;
         runButton.disabled = false;
         runButton.textContent = "▶ Run code";
-        runStatus.textContent = "Execution stopped because of an error.";
+        runStatus.textContent = "Execution stopped because of an error.";\n        frame.remove();\n        activeFrame = null;\n        window.removeEventListener("message", receive);
       }
     };
     window.addEventListener("message", receive);
