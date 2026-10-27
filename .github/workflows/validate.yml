@@ -1,0 +1,114 @@
+name: Validate AlgoScope
+on:
+  pull_request:
+  push:
+    branches: [main, "feat/**"]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: node --check script.js
+      - name: Check required pages, links, controls, and SEO
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          import xml.etree.ElementTree as ET
+
+          required = [
+              Path("index.html"),
+              Path("algorithms/bubble-sort.html"),
+              Path("algorithms/insertion-sort.html"),
+              Path("algorithms/binary-search.html"),
+              Path("styles.css"),
+              Path("script.js"),
+              Path("robots.txt"),
+              Path("sitemap.xml"),
+          ]
+          missing = [str(path) for path in required if not path.is_file()]
+          if missing:
+              raise SystemExit("FAIL: missing required files: " + ", ".join(missing))
+
+          class Audit(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.ids = set()
+                  self.links = []
+                  self.title_count = 0
+                  self.meta_description = False
+                  self.canonical = False
+              def handle_starttag(self, tag, attrs):
+                  attrs = dict(attrs)
+                  if "id" in attrs:
+                      self.ids.add(attrs["id"])
+                  if tag in ("a", "link", "script"):
+                      key = "href" if tag in ("a", "link") else "src"
+                      if attrs.get(key):
+                          self.links.append(attrs[key])
+                  if tag == "title":
+                      self.title_count += 1
+                  if tag == "meta" and attrs.get("name", "").lower() == "description" and attrs.get("content", "").strip():
+                      self.meta_description = True
+                  if tag == "link" and attrs.get("rel", "").lower() == "canonical" and attrs.get("href", "").strip():
+                      self.canonical = True
+
+          pages = [Path("index.html"), *sorted(Path("algorithms").glob("*.html"))]
+          audits = {}
+          errors = []
+          for page in pages:
+              parser = Audit()
+              parser.feed(page.read_text(encoding="utf-8"))
+              audits[page] = parser
+              if parser.title_count == 0:
+                  errors.append(f"{page}: missing title")
+              if not parser.meta_description:
+                  errors.append(f"{page}: missing meta description")
+              if not parser.canonical:
+                  errors.append(f"{page}: missing canonical URL")
+              for target in parser.links:
+                  if target.startswith(("#", "http:", "https:", "//", "mailto:", "tel:", "data:")):
+                      continue
+                  path = target.split("#", 1)[0].split("?", 1)[0]
+                  if not path:
+                      continue
+                  resolved = (page.parent / path).resolve()
+                  if not resolved.is_file():
+                      errors.append(f"{page}: broken local link or asset {target}")
+
+          required_controls = ["stage", "message", "comparisons", "swaps", "step", "prev", "next", "reset", "play", "speed", "random"]
+          for page in pages[1:]:
+              parser = audits[page]
+              for control in required_controls:
+                  if control not in parser.ids:
+                      errors.append(f"{page}: missing visualizer control id #{control}")
+              if page.name == "binary-search.html" and "target" not in parser.ids:
+                  errors.append(f"{page}: missing visualizer control id #target")
+
+          try:
+              sitemap = ET.parse("sitemap.xml").getroot()
+              locations = [node.text for node in sitemap.iter() if node.tag.endswith("loc")]
+              if len(locations) < len(pages):
+                  errors.append("sitemap.xml: expected a URL for every HTML page")
+              for page in pages:
+                  if page == Path("index.html"):
+                      matched = any(url and url.rstrip("/").endswith("gllr-spirit.github.io/AlgoScope") for url in locations)
+                  else:
+                      expected_suffix = "/AlgoScope/" + page.as_posix()
+                      matched = any(url and url.endswith(expected_suffix) for url in locations)
+                  if not matched:
+                      errors.append(f"sitemap.xml: missing {page}")
+          except ET.ParseError as exc:
+              errors.append(f"sitemap.xml: invalid XML ({exc})")
+
+          if errors:
+              print("\n".join("FAIL: " + error for error in errors))
+              raise SystemExit(1)
+          print(f"PASS: JavaScript syntax, {len(pages)} HTML pages, local links/assets, visualizer controls, SEO metadata, and sitemap.")
+          PY
