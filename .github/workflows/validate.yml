@@ -17,6 +17,7 @@ jobs:
         run: |
           node --check script.js
           node --check trace-model.js
+          node --check editor.js
       - name: Run trace contract unit tests
         run: node --test tests/*.test.cjs
       - name: Check required pages, links, controls, and SEO
@@ -33,6 +34,11 @@ jobs:
               Path("algorithms/binary-search.html"),
               Path("styles.css"),
               Path("script.js"),
+              Path("trace-model.js"),
+              Path("editor.html"),
+              Path("editor.js"),
+              Path("editor.css"),
+              Path("tests/trace-model.test.cjs"),
               Path("trace-model.js"),
               Path("tests/trace-model.test.cjs"),
               Path("robots.txt"),
@@ -65,7 +71,7 @@ jobs:
                   if tag == "link" and attrs.get("rel", "").lower() == "canonical" and attrs.get("href", "").strip():
                       self.canonical = True
 
-          pages = [Path("index.html"), *sorted(Path("algorithms").glob("*.html"))]
+          pages = [Path("index.html"), Path("editor.html"), *sorted(Path("algorithms").glob("*.html"))]
           audits = {}
           errors = []
           for page in pages:
@@ -89,7 +95,7 @@ jobs:
                       errors.append(f"{page}: broken local link or asset {target}")
 
           required_controls = ["stage", "message", "comparisons", "swaps", "step", "prev", "next", "reset", "play", "speed", "random"]
-          for page in pages[1:]:
+          for page in sorted(Path("algorithms").glob("*.html")):
               parser = audits[page]
               for control in required_controls:
                   if control not in parser.ids:
