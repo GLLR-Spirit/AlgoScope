@@ -94,6 +94,22 @@
         runButton.textContent = "▶ Run code";
         runStatus.textContent = "Execution finished.";
         if (!lines.length) output.textContent = "Finished without console output.";
+        frame.remove();
+        activeFrame = null;
+        window.removeEventListener("message", receive);
+        return;
+      }
+      if (data.type === "timeout") {
+        if (timeoutId !== null) clearTimeout(timeoutId);
+        timeoutId = null;
+        runButton.disabled = false;
+        runButton.textContent = "▶ Run code";
+        output.classList.add("error");
+        output.textContent = lines.join("\n") + (lines.length ? "\n" : "") + "Execution stopped: time limit exceeded.";
+        runStatus.textContent = "The sandbox worker was terminated after the time limit.";
+        frame.remove();
+        activeFrame = null;
+        window.removeEventListener("message", receive);
         return;
       }
       const prefix = data.type === "warn" ? "Warning: " : data.type === "error" || data.type === "runtime-error" ? "Error: " : "";
@@ -106,7 +122,8 @@
         timeoutId = null;
         runButton.disabled = false;
         runButton.textContent = "▶ Run code";
-        runStatus.textContent = "Execution stopped because of an error.";\n        frame.remove();\n        activeFrame = null;\n        window.removeEventListener("message", receive);
+        runStatus.textContent = "Execution stopped because of an error.";
+        frame.remove();\n        activeFrame = null;\n        window.removeEventListener("message", receive);
       }
     };
     window.addEventListener("message", receive);
