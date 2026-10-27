@@ -17,6 +17,7 @@ jobs:
         run: |
           node --check script.js
           node --check trace-model.js
+          node --check editor.js
       - name: Run trace contract unit tests
         run: node --test tests/*.test.cjs
       - name: Check required pages, links, controls, and SEO
@@ -70,7 +71,7 @@ jobs:
                   if tag == "link" and attrs.get("rel", "").lower() == "canonical" and attrs.get("href", "").strip():
                       self.canonical = True
 
-          pages = [Path("index.html"), *sorted(Path("algorithms").glob("*.html"))]
+          pages = [Path("index.html"), Path("editor.html"), *sorted(Path("algorithms").glob("*.html"))]
           audits = {}
           errors = []
           for page in pages:
