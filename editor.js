@@ -216,7 +216,7 @@
   });
   $("#apply-array").addEventListener("click", () => {
     const raw = $("#custom-array").value.trim();
-    const parts = raw.split(/[\\s,;]+/).filter(Boolean);
+    const parts = raw.split(/[\s,;]+/).filter(Boolean);
     const values = parts.map(Number);
     const status = $("#array-status");
     if (parts.length < 2 || parts.length > 12 || values.some(value => !Number.isInteger(value) || value < 1 || value > 999)) {
@@ -229,10 +229,28 @@
     status.textContent = "Trace updated for " + values.length + " values.";
     status.classList.remove("error");
     if (exampleSelect.value === "bubble") {
-      codeInput.value = "function bubbleSort(values) {\\n  const a = [...values];\\n  let swaps = 0;\\n  for (let end = a.length - 1; end > 0; end--) {\\n    let changed = false;\\n    for (let i = 0; i < end; i++) {\\n      console.log(\\"Compare\\", a[i], a[i + 1]);\\n      if (a[i] > a[i + 1]) {\\n        [a[i], a[i + 1]] = [a[i + 1], a[i]];\\n        swaps++; changed = true;\\n      }\\n    }\\n    if (!changed) break;\\n  }\\n  console.log(\\"Sorted:\\", a, \\"Swaps:\\", swaps);\\n}\\nbubbleSort([" + values.join(", ") + "]);";
+      codeInput.value = [
+        "function bubbleSort(values) {",
+        "  const a = [...values];",
+        "  let swaps = 0;",
+        "  for (let end = a.length - 1; end > 0; end--) {",
+        "    let changed = false;",
+        "    for (let i = 0; i < end; i++) {",
+        "      console.log(\"Compare\", a[i], a[i + 1]);",
+        "      if (a[i] > a[i + 1]) {",
+        "        [a[i], a[i + 1]] = [a[i + 1], a[i]];",
+        "        swaps++; changed = true;",
+        "      }",
+        "    }",
+        "    if (!changed) break;",
+        "  }",
+        "  console.log(\"Sorted:\", a, \"Swaps:\", swaps);",
+        "}",
+        "bubbleSort([" + values.join(", ") + "]);"
+      ].join("\n");
     }
   });
-  $("#trace-prev").addEventListener("click", () => { traceIndex = Math.max(0, traceIndex - 1); renderTrace(); });
+    $("#trace-prev").addEventListener("click", () => { traceIndex = Math.max(0, traceIndex - 1); renderTrace(); });
   $("#trace-next").addEventListener("click", () => { traceIndex = Math.min(trace.length - 1, traceIndex + 1); renderTrace(); });
   $("#trace-reset").addEventListener("click", () => { traceIndex = 0; renderTrace(); });
   $("#trace-timeline").addEventListener("input", (event) => { traceIndex = Number(event.target.value); renderTrace(); });
