@@ -37,10 +37,22 @@ console.log("Total:", values.reduce((sum, value) => sum + value, 0));</textarea>
 <p id="array-status" class="editor-help" role="status" aria-live="polite">Showing the default array.</p>
 <div id="trace-stage" class="trace-stage" aria-label="Bubble Sort array trace"></div>
 <p id="trace-explanation" class="trace-explanation" aria-live="polite">Choose “Bubble Sort” from the example menu, then use the trace controls.</p>
+<details class="trace-source" open>
+  <summary>Source code · current line highlighted</summary>
+  <p class="editor-help">This source listing is the reference for the educational trace. It is separate from the editable code above.</p>
+  <div id="trace-code" class="trace-code" aria-label="Bubble Sort source code with highlighted current line"></div>
+</details>
 <div class="trace-controls"><button id="trace-prev" type="button" disabled>← Previous</button><button id="trace-next" type="button">Next →</button><button id="trace-reset" type="button">↺ Reset</button></div>
 <div class="trace-meter"><span id="trace-step">Step 1 / 1</span><span id="trace-counts">Comparisons: 0 · Swaps: 0</span></div>
 <input id="trace-timeline" type="range" min="0" max="0" value="0" step="1" aria-label="Navigate trace steps">
 </div>
+</section>
+<section class="exercise-panel panel">
+  <div class="panel-heading"><h2>Practice: Bubble Sort</h2><span class="trace-pill">3 questions</span></div>
+  <p class="editor-help">Answer the questions, check your work, and read the explanation for each answer. This quiz is independent from running arbitrary JavaScript.</p>
+  <div id="exercise-list" class="exercise-list"></div>
+  <div class="editor-actions"><button class="primary" id="check-exercises" type="button">Check answers</button><button id="reset-exercises" type="button">Try again</button></div>
+  <p id="exercise-score" class="editor-help" role="status" aria-live="polite">Answer the questions, then check your work.</p>
 </section>
 <section class="editor-note"><h2>What this first version supports</h2><ul><li>Run JavaScript and read console output and runtime errors.</li><li>Use a disposable sandboxed iframe; the code does not receive access to the parent page's DOM.</li><li>Step backward and forward through a built-in Bubble Sort trace with array snapshots and counters.</li></ul><p><strong>Important:</strong> arbitrary JavaScript is executed, but its internal operations are not automatically traced yet. Python and C support are planned for later stages.</p></section>
 </main>

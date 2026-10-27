@@ -154,27 +154,58 @@
   let traceIndex = 0;
   let initial = [5, 2, 4, 1, 3];
 
+  const traceCodeLines = [
+    "function bubbleSort(values) {",
+    "  const a = [...values];",
+    "  let swaps = 0;",
+    "  for (let end = a.length - 1; end > 0; end--) {",
+    "    let changed = false;",
+    "    for (let i = 0; i < end; i++) {",
+    "      // Compare neighboring values",
+    "      if (a[i] > a[i + 1]) {",
+    "        [a[i], a[i + 1]] = [a[i + 1], a[i]];",
+    "        swaps++; changed = true;",
+    "      }",
+    "    }",
+    "    if (!changed) break;",
+    "  }",
+    "  return { sorted: a, swaps };",
+    "}"
+  ];
+
   function buildTrace() {
     const values = [...initial];
     let comparisons = 0;
     let swaps = 0;
-    trace = [{ a: [...values], active: [], sorted: [], comparisons, swaps, explanation: "Starting array. Bubble Sort compares neighboring values and swaps them when they are out of order." }];
+    trace = [{ a: [...values], active: [], sorted: [], comparisons, swaps, line: 1, explanation: "Start here: the function receives an array and will sort a copy." }];
+    trace.push({ a: [...values], active: [], sorted: [], comparisons, swaps, line: 2, explanation: "Create a copy so the original input array is not modified." });
+    trace.push({ a: [...values], active: [], sorted: [], comparisons, swaps, line: 3, explanation: "Initialize the swap counter to zero." });
     for (let end = values.length - 1; end > 0; end--) {
+      trace.push({ a: [...values], active: [], sorted: [], comparisons, swaps, line: 4, explanation: "Start a pass. The unsorted section ends at index " + end + "." });
       let changed = false;
+      trace.push({ a: [...values], active: [], sorted: [], comparisons, swaps, line: 5, explanation: "Assume this pass will not need a swap. If no swap happens, the array is already sorted." });
       for (let i = 0; i < end; i++) {
         comparisons++;
-        trace.push({ a: [...values], active: [i, i + 1], sorted: [], comparisons, swaps, explanation: "Compare " + values[i] + " and " + values[i + 1] + "." });
+        trace.push({ a: [...values], active: [i, i + 1], sorted: [], comparisons, swaps, line: 6, explanation: "Select adjacent positions " + i + " and " + (i + 1) + " for comparison." });
+        trace.push({ a: [...values], active: [i, i + 1], sorted: [], comparisons, swaps, line: 7, explanation: "Compare " + values[i] + " with " + values[i + 1] + "." });
         if (values[i] > values[i + 1]) {
+          trace.push({ a: [...values], active: [i, i + 1], sorted: [], comparisons, swaps, line: 8, explanation: values[i] + " is greater than " + values[i + 1] + ", so the condition is true." });
           [values[i], values[i + 1]] = [values[i + 1], values[i]];
           swaps++;
           changed = true;
-          trace.push({ a: [...values], active: [i, i + 1], sorted: [], comparisons, swaps, explanation: "They were out of order, so swap them. Total swaps: " + swaps + "." });
+          trace.push({ a: [...values], active: [i, i + 1], sorted: [], comparisons, swaps, line: 9, explanation: "Swap the two neighboring values. The array is now " + values.join(", ") + "." });
+          trace.push({ a: [...values], active: [i, i + 1], sorted: [], comparisons, swaps, line: 10, explanation: "Record the swap and mark that this pass changed the array." });
+        } else {
+          trace.push({ a: [...values], active: [i, i + 1], sorted: [], comparisons, swaps, line: 8, explanation: values[i] + " is not greater than " + values[i + 1] + ", so no swap is needed." });
         }
       }
-      trace.push({ a: [...values], active: [], sorted: values.map((_, index) => index).filter(index => index > end - 1), comparisons, swaps, explanation: "The largest remaining value is now at the end of the unsorted section." });
-      if (!changed) break;
+      trace.push({ a: [...values], active: [], sorted: values.map((_, index) => index).filter(index => index >= end), comparisons, swaps, line: 12, explanation: "The pass is complete. The largest value from the unsorted section has reached index " + end + "." });
+      if (!changed) {
+        trace.push({ a: [...values], active: [], sorted: values.map((_, index) => index), comparisons, swaps, line: 13, explanation: "No swaps occurred in this pass, so stop early: the array is sorted." });
+        break;
+      }
     }
-    trace.push({ a: [...values], active: [], sorted: values.map((_, index) => index), comparisons, swaps, explanation: "Finished. The array is sorted in ascending order." });
+    trace.push({ a: [...values], active: [], sorted: values.map((_, index) => index), comparisons, swaps, line: 15, explanation: "Return the sorted copy and the total number of swaps." });
     traceIndex = 0;
     renderTrace();
   }
@@ -194,6 +225,23 @@
       stage.appendChild(bar);
     });
     $("#trace-explanation").textContent = step.explanation;
+    const codeStage = $("#trace-code");
+    if (codeStage) {
+      codeStage.replaceChildren();
+      traceCodeLines.forEach((line, index) => {
+        const row = document.createElement("div");
+        row.className = "trace-code-line" + (index + 1 === step.line ? " current" : "");
+        const number = document.createElement("span");
+        number.className = "trace-line-number";
+        number.textContent = String(index + 1);
+        const content = document.createElement("code");
+        content.textContent = line;
+        row.append(number, content);
+        codeStage.appendChild(row);
+      });
+      const current = codeStage.querySelector(".current");
+      if (current) current.scrollIntoView({ block: "nearest" });
+    }
     $("#trace-step").textContent = "Step " + (traceIndex + 1) + " / " + trace.length;
     $("#trace-counts").textContent = "Comparisons: " + step.comparisons + " · Swaps: " + step.swaps;
     $("#trace-timeline").max = String(trace.length - 1);
@@ -254,8 +302,71 @@
   $("#trace-next").addEventListener("click", () => { traceIndex = Math.min(trace.length - 1, traceIndex + 1); renderTrace(); });
   $("#trace-reset").addEventListener("click", () => { traceIndex = 0; renderTrace(); });
   $("#trace-timeline").addEventListener("input", (event) => { traceIndex = Number(event.target.value); renderTrace(); });
+
+  const exerciseQuestions = [
+    { question: "Why does Bubble Sort compare neighboring values?", options: ["To move out-of-order values toward the end", "To find the middle element", "To remove duplicate values"], answer: 0, explanation: "Adjacent comparisons move larger values rightward during each pass." },
+    { question: "When should the algorithm swap a[i] and a[i + 1]?", options: ["Whenever i is even", "When a[i] is greater than a[i + 1]", "When both values are equal"], answer: 1, explanation: "For ascending order, swap only when the left value is greater than the right value." },
+    { question: "What does changed = false help detect?", options: ["Whether the array contains strings", "Whether a pass made no swaps", "How many values are in the array"], answer: 1, explanation: "If a complete pass makes no swaps, the array is already sorted and the algorithm can stop early." }
+  ];
+  function renderExercises() {
+    const root = $("#exercise-list");
+    if (!root) return;
+    root.replaceChildren();
+    exerciseQuestions.forEach((item, index) => {
+      const card = document.createElement("fieldset");
+      card.className = "exercise-question";
+      const legend = document.createElement("legend");
+      legend.textContent = (index + 1) + ". " + item.question;
+      card.appendChild(legend);
+      item.options.forEach((option, optionIndex) => {
+        const label = document.createElement("label");
+        label.className = "exercise-option";
+        const radio = document.createElement("input");
+        radio.type = "radio";
+        radio.name = "exercise-" + index;
+        radio.value = String(optionIndex);
+        label.append(radio, document.createTextNode(option));
+        card.appendChild(label);
+      });
+      const feedback = document.createElement("p");
+      feedback.className = "exercise-feedback";
+      feedback.id = "exercise-feedback-" + index;
+      feedback.setAttribute("aria-live", "polite");
+      card.appendChild(feedback);
+      root.appendChild(card);
+    });
+  }
+  $("#check-exercises").addEventListener("click", () => {
+    let answered = 0, correct = 0;
+    exerciseQuestions.forEach((item, index) => {
+      const selected = document.querySelector('input[name="exercise-' + index + '"]:checked');
+      const feedback = $("#exercise-feedback-" + index);
+      feedback.classList.remove("correct", "incorrect");
+      if (!selected) {
+        feedback.textContent = "Choose an answer. " + item.explanation;
+        feedback.classList.add("incorrect");
+        return;
+      }
+      answered++;
+      if (Number(selected.value) === item.answer) {
+        correct++;
+        feedback.textContent = "Correct. " + item.explanation;
+        feedback.classList.add("correct");
+      } else {
+        feedback.textContent = "Not quite. Correct answer: " + item.options[item.answer] + ". " + item.explanation;
+        feedback.classList.add("incorrect");
+      }
+    });
+    $("#exercise-score").textContent = "Score: " + correct + " / " + exerciseQuestions.length + " · Answered: " + answered + " / " + exerciseQuestions.length;
+  });
+  $("#reset-exercises").addEventListener("click", () => {
+    document.querySelectorAll('#exercise-list input[type="radio"]').forEach(input => { input.checked = false; });
+    document.querySelectorAll(".exercise-feedback").forEach(feedback => { feedback.textContent = ""; feedback.classList.remove("correct", "incorrect"); });
+    $("#exercise-score").textContent = "Answer the questions, then check your work.";
+  });
   window.addEventListener("beforeunload", stopCurrentRun);
   const year = $("#year");
   if (year) year.textContent = String(new Date().getFullYear());
   buildTrace();
+  renderExercises();
 })();
