@@ -20,7 +20,6 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           from html.parser import HTMLParser
-          import re
           import xml.etree.ElementTree as ET
 
           required = [
@@ -83,17 +82,14 @@ jobs:
                   if not resolved.is_file():
                       errors.append(f"{page}: broken local link or asset {target}")
 
-          script = Path("script.js").read_text(encoding="utf-8")
           required_controls = ["stage", "message", "comparisons", "swaps", "step", "prev", "next", "reset", "play", "speed", "random"]
           for page in pages[1:]:
               parser = audits[page]
               for control in required_controls:
-                  if control == "target" and "binary-search" not in str(page):
-                      continue
                   if control not in parser.ids:
                       errors.append(f"{page}: missing visualizer control id #{control}")
-          if "binary-search" in str(pages[-1]) and "target" not in audits[pages[-1]].ids:
-              errors.append("binary-search page: missing #target input")
+              if page.name == "binary-search.html" and "target" not in parser.ids:
+                  errors.append(f"{page}: missing visualizer control id #target")
 
           try:
               sitemap = ET.parse("sitemap.xml").getroot()
@@ -101,8 +97,12 @@ jobs:
               if len(locations) < len(pages):
                   errors.append("sitemap.xml: expected a URL for every HTML page")
               for page in pages:
-                  expected_suffix = "/" if page == Path("index.html") else "/" + page.as_posix()
-                  if not any(url and url.rstrip("/").endswith(expected_suffix.rstrip("/")) for url in locations):
+                  if page == Path("index.html"):
+                      matched = any(url and url.rstrip("/").endswith("gllr-spirit.github.io/AlgoScope") for url in locations)
+                  else:
+                      expected_suffix = "/AlgoScope/" + page.as_posix()
+                      matched = any(url and url.endswith(expected_suffix) for url in locations)
+                  if not matched:
                       errors.append(f"sitemap.xml: missing {page}")
           except ET.ParseError as exc:
               errors.append(f"sitemap.xml: invalid XML ({exc})")
