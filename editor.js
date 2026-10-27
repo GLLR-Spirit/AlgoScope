@@ -152,7 +152,7 @@
 
   let trace = [];
   let traceIndex = 0;
-  const initial = [5, 2, 4, 1, 3];
+  let initial = [5, 2, 4, 1, 3];
 
   function buildTrace() {
     const values = [...initial];
@@ -212,6 +212,24 @@
       event.preventDefault();
       const start = codeInput.selectionStart, end = codeInput.selectionEnd;
       codeInput.setRangeText("  ", start, end, "end");
+    }
+  });
+  $("#apply-array").addEventListener("click", () => {
+    const raw = $("#custom-array").value.trim();
+    const parts = raw.split(/[\\s,;]+/).filter(Boolean);
+    const values = parts.map(Number);
+    const status = $("#array-status");
+    if (parts.length < 2 || parts.length > 12 || values.some(value => !Number.isInteger(value) || value < 1 || value > 999)) {
+      status.textContent = "Enter 2–12 positive integers from 1 to 999, separated by commas or spaces.";
+      status.classList.add("error");
+      return;
+    }
+    initial = values;
+    buildTrace();
+    status.textContent = "Trace updated for " + values.length + " values.";
+    status.classList.remove("error");
+    if (exampleSelect.value === "bubble") {
+      codeInput.value = "function bubbleSort(values) {\\n  const a = [...values];\\n  let swaps = 0;\\n  for (let end = a.length - 1; end > 0; end--) {\\n    let changed = false;\\n    for (let i = 0; i < end; i++) {\\n      console.log(\\"Compare\\", a[i], a[i + 1]);\\n      if (a[i] > a[i + 1]) {\\n        [a[i], a[i + 1]] = [a[i + 1], a[i]];\\n        swaps++; changed = true;\\n      }\\n    }\\n    if (!changed) break;\\n  }\\n  console.log(\\"Sorted:\\", a, \\"Swaps:\\", swaps);\\n}\\nbubbleSort([" + values.join(", ") + "]);";
     }
   });
   $("#trace-prev").addEventListener("click", () => { traceIndex = Math.max(0, traceIndex - 1); renderTrace(); });
